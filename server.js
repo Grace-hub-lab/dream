@@ -236,6 +236,10 @@ function serveStatic(req, res) {
 }
 
 const server = http.createServer((req, res) => {
+  // 前端用它判断是否显示「AI 深度解读」按钮
+  if (req.method === 'GET' && req.url === '/api/health') {
+    return sendJson(res, 200, { ai: !!API_KEY, needCode: !!ACCESS_CODE });
+  }
   if (req.method === 'POST' && req.url === '/api/interpret') {
     handleInterpret(req, res).catch((err) => {
       console.error(err);

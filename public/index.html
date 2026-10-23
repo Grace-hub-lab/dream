@@ -4,36 +4,32 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#1a1036" />
-  <meta name="description" content="把你的梦讲给我听，AI 帮你解读梦境" />
+  <meta name="description" content="把你的梦讲给我听，帮你解读梦境" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="解梦" />
+  <meta name="format-detection" content="telephone=no" />
   <title>梦境解析</title>
-  <link rel="manifest" href="/manifest.webmanifest" />
-  <link rel="icon" href="/icons/icon-192.png" type="image/png" />
-  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
-  <link rel="stylesheet" href="/style.css" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="icons/icon-180.png" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="stars" aria-hidden="true"></div>
 
   <header class="app-header">
     <h1>🌙 梦境解析</h1>
-    <p class="subtitle">把昨晚的梦讲给我听</p>
   </header>
 
-  <nav class="tabs" role="tablist" aria-label="主导航">
-    <button role="tab" id="tab-new" aria-selected="true" aria-controls="panel-new" class="tab active">解梦</button>
-    <button role="tab" id="tab-history" aria-selected="false" aria-controls="panel-history" class="tab">梦境日记</button>
-  </nav>
-
   <main>
-    <!-- 解梦面板 -->
-    <section id="panel-new" role="tabpanel" aria-labelledby="tab-new">
+    <!-- ===== 解梦 ===== -->
+    <section id="panel-new" class="panel" role="tabpanel" aria-labelledby="tab-new">
       <form id="dream-form" class="card" novalidate>
         <label for="dream-input" class="label">你梦见了什么？</label>
-        <textarea id="dream-input" rows="7" maxlength="3000"
-          placeholder="尽量描述细节：场景、人物、发生的事、颜色、声音……&#10;例如：我梦见自己在一栋很高的楼里找出口，楼梯一直往下却走不到底，后来遇到了小学同桌……"
+        <textarea id="dream-input" rows="6" maxlength="3000"
+          placeholder="尽量描述细节：场景、人物、发生的事……&#10;例如：我梦见自己在一栋很高的楼里找出口，楼梯一直往下走不到底，后来遇到了小学同桌"
           required></textarea>
         <div class="counter" aria-live="polite"><span id="char-count">0</span> / 3000</div>
 
@@ -62,25 +58,48 @@
           </div>
         </fieldset>
 
-        <button type="submit" id="submit-btn" class="primary">✨ 开始解梦</button>
+        <button type="submit" class="primary">🔮 解梦（免费）</button>
         <p id="form-error" class="error" role="alert" hidden></p>
       </form>
 
-      <article id="result" class="card result" hidden aria-live="polite">
-        <div id="result-body" class="markdown"></div>
-        <div id="result-loading" class="loading" hidden>
-          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
-          <span class="sr-only">正在解读</span>
+      <!-- 词典解读结果 -->
+      <article id="result" class="card" hidden aria-live="polite">
+        <div id="local-body"></div>
+
+        <!-- AI 深度解读（服务端可用时才显示） -->
+        <div id="ai-section" hidden>
+          <button type="button" id="ai-btn" class="primary ai">✨ AI 深度解读</button>
+          <p class="hint" id="ai-hint">结合整个梦的情节来分析，每次约消耗几分钱</p>
+          <div id="ai-wrap" hidden>
+            <h3 class="ai-title">✨ AI 深度解读</h3>
+            <div id="ai-body" class="markdown"></div>
+            <div id="ai-loading" class="loading" hidden>
+              <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              <span class="sr-only">正在解读</span>
+            </div>
+          </div>
         </div>
-        <div class="result-actions" id="result-actions" hidden>
+
+        <div class="result-actions">
           <button type="button" id="copy-btn" class="ghost">📋 复制</button>
           <button type="button" id="again-btn" class="ghost">🌙 再解一个梦</button>
         </div>
       </article>
     </section>
 
-    <!-- 梦境日记面板 -->
-    <section id="panel-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+    <!-- ===== 词典 ===== -->
+    <section id="panel-dict" class="panel" role="tabpanel" aria-labelledby="tab-dict" hidden>
+      <div class="search-bar">
+        <label for="dict-search" class="sr-only">搜索梦境意象</label>
+        <input id="dict-search" class="text-input" type="search" placeholder="🔍 搜索：蛇、掉牙、考试……" autocomplete="off" />
+      </div>
+      <div class="chips cats" id="dict-cats" role="group" aria-label="分类筛选"></div>
+      <p id="dict-count" class="muted small-text"></p>
+      <div id="dict-list"></div>
+    </section>
+
+    <!-- ===== 日记 ===== -->
+    <section id="panel-history" class="panel" role="tabpanel" aria-labelledby="tab-history" hidden>
       <div class="history-head">
         <span id="history-count" class="muted"></span>
         <button type="button" id="clear-history" class="ghost small">清空</button>
@@ -88,15 +107,34 @@
       <ul id="history-list" class="history-list"></ul>
       <p id="history-empty" class="muted center">还没有记录，去解一个梦吧 🌙</p>
     </section>
+
+    <footer class="footer">解读仅供娱乐与自我反思，不构成任何专业建议</footer>
   </main>
 
-  <!-- 日记详情弹窗 -->
+  <!-- 底部导航 -->
+  <nav class="bottom-nav" role="tablist" aria-label="主导航">
+    <button role="tab" id="tab-new" data-tab="new" aria-controls="panel-new" aria-selected="true" class="nav-item active">
+      <span class="nav-icon" aria-hidden="true">🔮</span><span>解梦</span>
+    </button>
+    <button role="tab" id="tab-dict" data-tab="dict" aria-controls="panel-dict" aria-selected="false" class="nav-item">
+      <span class="nav-icon" aria-hidden="true">📖</span><span>词典</span>
+    </button>
+    <button role="tab" id="tab-history" data-tab="history" aria-controls="panel-history" aria-selected="false" class="nav-item">
+      <span class="nav-icon" aria-hidden="true">📔</span><span>日记</span>
+    </button>
+  </nav>
+
+  <!-- 日记详情 -->
   <dialog id="detail-dialog" aria-labelledby="detail-title">
     <div class="dialog-inner">
       <h2 id="detail-title">梦境详情</h2>
-      <p id="detail-meta" class="muted"></p>
+      <p id="detail-meta" class="muted small-text"></p>
       <blockquote id="detail-dream"></blockquote>
-      <div id="detail-body" class="markdown"></div>
+      <div id="detail-local"></div>
+      <div id="detail-ai" hidden>
+        <h3 class="ai-title">✨ AI 深度解读</h3>
+        <div id="detail-ai-body" class="markdown"></div>
+      </div>
       <div class="dialog-actions">
         <button type="button" id="detail-delete" class="ghost danger">删除</button>
         <button type="button" id="detail-close" class="primary small">关闭</button>
@@ -104,7 +142,7 @@
     </div>
   </dialog>
 
-  <!-- 访问密码弹窗 -->
+  <!-- 访问密码 -->
   <dialog id="code-dialog" aria-labelledby="code-title">
     <form method="dialog" class="dialog-inner" id="code-form">
       <h2 id="code-title">🔑 输入访问密码</h2>
@@ -118,8 +156,7 @@
     </form>
   </dialog>
 
-  <footer class="footer">解读仅供娱乐与自我反思，不构成任何专业建议</footer>
-
-  <script src="/app.js"></script>
+  <script src="dict.js"></script>
+  <script src="app.js"></script>
 </body>
 </html>
