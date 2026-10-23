@@ -1,0 +1,14 @@
+{
+  "name": "dream-interpreter",
+  "version": "1.0.0",
+  "description": "AI 解梦 PWA",
+  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "icons": "node scripts/make-icons.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#1a1036" />
+  <meta name="description" content="把你的梦讲给我听，AI 帮你解读梦境" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="解梦" />
+  <title>梦境解析</title>
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="icon" href="/icons/icon-192.png" type="image/png" />
+  <link rel="apple-touch-icon" href="/icons/icon-180.png" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <div class="stars" aria-hidden="true"></div>
+
+  <header class="app-header">
+    <h1>🌙 梦境解析</h1>
+    <p class="subtitle">把昨晚的梦讲给我听</p>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="主导航">
+    <button role="tab" id="tab-new" aria-selected="true" aria-controls="panel-new" class="tab active">解梦</button>
+    <button role="tab" id="tab-history" aria-selected="false" aria-controls="panel-history" class="tab">梦境日记</button>
+  </nav>
+
+  <main>
+    <!-- 解梦面板 -->
+    <section id="panel-new" role="tabpanel" aria-labelledby="tab-new">
+      <form id="dream-form" class="card" novalidate>
+        <label for="dream-input" class="label">你梦见了什么？</label>
+        <textarea id="dream-input" rows="7" maxlength="3000"
+          placeholder="尽量描述细节：场景、人物、发生的事、颜色、声音……&#10;例如：我梦见自己在一栋很高的楼里找出口，楼梯一直往下却走不到底，后来遇到了小学同桌……"
+          required></textarea>
+        <div class="counter" aria-live="polite"><span id="char-count">0</span> / 3000</div>
+
+        <fieldset class="group">
+          <legend class="label">醒来后的感受</legend>
+          <div class="chips" id="mood-chips">
+            <button type="button" class="chip" data-mood="平静">😌 平静</button>
+            <button type="button" class="chip" data-mood="开心">😊 开心</button>
+            <button type="button" class="chip" data-mood="害怕">😨 害怕</button>
+            <button type="button" class="chip" data-mood="焦虑">😰 焦虑</button>
+            <button type="button" class="chip" data-mood="难过">😢 难过</button>
+            <button type="button" class="chip" data-mood="困惑">😵 困惑</button>
+            <button type="button" class="chip" data-mood="怀念">🥹 怀念</button>
+          </div>
+        </fieldset>
+
+        <fieldset class="group">
+          <legend class="label">解读角度</legend>
+          <div class="segmented">
+            <input type="radio" name="style" id="style-both" value="both" checked />
+            <label for="style-both">综合</label>
+            <input type="radio" name="style" id="style-psych" value="psych" />
+            <label for="style-psych">心理学</label>
+            <input type="radio" name="style" id="style-zhougong" value="zhougong" />
+            <label for="style-zhougong">周公解梦</label>
+          </div>
+        </fieldset>
+
+        <button type="submit" id="submit-btn" class="primary">✨ 开始解梦</button>
+        <p id="form-error" class="error" role="alert" hidden></p>
+      </form>
+
+      <article id="result" class="card result" hidden aria-live="polite">
+        <div id="result-body" class="markdown"></div>
+        <div id="result-loading" class="loading" hidden>
+          <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+          <span class="sr-only">正在解读</span>
+        </div>
+        <div class="result-actions" id="result-actions" hidden>
+          <button type="button" id="copy-btn" class="ghost">📋 复制</button>
+          <button type="button" id="again-btn" class="ghost">🌙 再解一个梦</button>
+        </div>
+      </article>
+    </section>
+
+    <!-- 梦境日记面板 -->
+    <section id="panel-history" role="tabpanel" aria-labelledby="tab-history" hidden>
+      <div class="history-head">
+        <span id="history-count" class="muted"></span>
+        <button type="button" id="clear-history" class="ghost small">清空</button>
+      </div>
+      <ul id="history-list" class="history-list"></ul>
+      <p id="history-empty" class="muted center">还没有记录，去解一个梦吧 🌙</p>
+    </section>
+  </main>
+
+  <!-- 日记详情弹窗 -->
+  <dialog id="detail-dialog" aria-labelledby="detail-title">
+    <div class="dialog-inner">
+      <h2 id="detail-title">梦境详情</h2>
+      <p id="detail-meta" class="muted"></p>
+      <blockquote id="detail-dream"></blockquote>
+      <div id="detail-body" class="markdown"></div>
+      <div class="dialog-actions">
+        <button type="button" id="detail-delete" class="ghost danger">删除</button>
+        <button type="button" id="detail-close" class="primary small">关闭</button>
+      </div>
+    </div>
+  </dialog>
+
+  <!-- 访问密码弹窗 -->
+  <dialog id="code-dialog" aria-labelledby="code-title">
+    <form method="dialog" class="dialog-inner" id="code-form">
+      <h2 id="code-title">🔑 输入访问密码</h2>
+      <p class="muted" id="code-hint">输入一次后会记在这台设备上</p>
+      <label for="code-input" class="sr-only">访问密码</label>
+      <input id="code-input" class="text-input" type="password" autocomplete="current-password" required />
+      <div class="dialog-actions">
+        <button type="button" id="code-cancel" class="ghost">取消</button>
+        <button type="submit" class="primary small">确定</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer class="footer">解读仅供娱乐与自我反思，不构成任何专业建议</footer>
+
+  <script src="/app.js"></script>
+</body>
+</html>
